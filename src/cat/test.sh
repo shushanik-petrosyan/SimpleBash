@@ -36,32 +36,25 @@ for flag in "--number-nonblank" "--squeeze-blank" "--number"; do
 done
 
 echo "----------Длинные флаги (MacOS)----------:"
-./s21_cat --number-nonblank $tmp_file1 > $tmp_file3
-cat -b $tmp_file1 > $tmp_file2
-if [ -z "$diff_result" ]; then
-    echo "Тест с флагом number-nonblank прошел успешно."
-else
-    echo "Тест с флагом number-nonblank не прошел. Различия:"
-    echo "$diff_result"
-fi
-
-./s21_cat --squeeze-blank $tmp_file1 > $tmp_file3
-cat -s $tmp_file1 > $tmp_file2
-if [ -z "$diff_result" ]; then
-    echo "Тест с флагом squeeze-blank прошел успешно."
-else
-    echo "Тест с флагом squeeze-blank не прошел. Различия:"
-    echo "$diff_result"
-fi
-
-./s21_cat --number $tmp_file1 > $tmp_file3
-cat -n $tmp_file1 > $tmp_file2
-if [ -z "$diff_result" ]; then
-    echo "Тест с флагом number прошел успешно."
-else
-    echo "Тест с флагом number не прошел. Различия:"
-    echo "$diff_result"
-fi
+for flag in "--number-nonblank" "--squeeze-blank" "--number"; do
+    ./s21_cat $flag $tmp_file1 > $tmp_file3
+    case $flag in
+        "--number-nonblank")
+            cat_command="cat -b";;
+        "--squeeze-blank")
+            cat_command="cat -s";;
+        "--number")
+            cat_command="cat -n";;
+    esac
+    $cat_command $tmp_file1 > $tmp_file2
+    diff_result=$(diff $tmp_file2 $tmp_file3)
+    if [ -z "$diff_result" ]; then
+        echo "Тест с флагом $flag прошел успешно."
+    else
+        echo "Тест с флагом $flag не прошел. Различия:"
+        echo "$diff_result"
+    fi
+done
 
 echo "----------Работа с 2 файлами (короткие флаги) ----------:"
 tmp_file4=$(mktemp)
@@ -95,7 +88,25 @@ for flag in "--number-nonblank" "--squeeze-blank" "--number"; do
 done
 
 echo "----------Работа с 2 файлами (длиные флаги MacOS) ----------:"
-
+for flag in "--number-nonblank" "--squeeze-blank" "--number"; do
+    ./s21_cat $flag $tmp_file1 $tmp_file4 > $tmp_file3
+    case $flag in
+        "--number-nonblank")
+            cat_command="cat -b";;
+        "--squeeze-blank")
+            cat_command="cat -s";;
+        "--number")
+            cat_command="cat -n";;
+    esac
+    $cat_command $tmp_file1 $tmp_file4 > $tmp_file2
+    diff_result=$(diff $tmp_file2 $tmp_file3)
+    if [ -z "$diff_result" ]; then
+        echo "Тест с флагом $flag прошел успешно."
+    else
+        echo "Тест с флагом $flag не прошел. Различия:"
+        echo "$diff_result"
+    fi
+done
 
 
 
