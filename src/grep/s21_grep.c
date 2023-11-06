@@ -83,7 +83,7 @@ void arg_number(int argc, char **argv) {
     fprintf(stdout, "%s: %s: No such file or directory\n", str[0], str[i]);
   } else {
     fprintf(stdout, "%s", str[i]);
-    // print_file(fp, options, counter, previous_symbol, current_symbol);
+    //вызов функции греп 
     fclose(fp);
   }
 }
