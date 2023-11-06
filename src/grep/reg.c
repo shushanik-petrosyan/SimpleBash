@@ -21,6 +21,7 @@ int main() {
 
     regex_t regex;
     int reti;
+    regmatch_t matches[1];
 
     // компилируем регулярное выражение
     reti = regcomp(&regex, pattern, 0);
@@ -30,9 +31,9 @@ int main() {
     }
 
     // ищем совпадения в тексте
-    reti = regexec(&regex, text, 0, NULL, 0);
+    reti = regexec(&regex, text, 1, matches, 0);
     if (!reti) {
-        printf("+\n"); // совпадение найдено
+        printf("%d %d\n", matches[0].rm_so, matches[0].rm_eo-1); // выводим индексы первого совпадения
     } else if (reti == REG_NOMATCH) {
         printf("-\n"); // совпадение не найдено
     } else {
