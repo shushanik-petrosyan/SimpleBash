@@ -108,4 +108,5 @@ for flag in "--number-nonblank" "--squeeze-blank" "--number"; do
     fi
 done
 
-rm $tmp_file1 $tmp_file2 $tmp_file3 $tmp_file4
+# Удаляем временные файлы
+rm $tmp_file1 $tmp_file2 
