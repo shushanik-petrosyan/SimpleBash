@@ -4,8 +4,8 @@
 #include <stdio.h>    // для скана и принта и гетлайна
 #include <stdlib.h>   // для маллоков
 #include <string.h>   // на будущее
-#define _GNU_SOURCE
-#define  _POSIX_C_SOURCE 200809L
+#define  _GNU_SOURCE
+
 
 //исправить .
 
@@ -93,7 +93,7 @@ void arg_number(int argc, char **argv, struct options *options) {
   if (argc <= 2) {
     fprintf(stderr,
             "Usage: grep [OPTION]... PATTERN [FILE]... \n Try 'grep --help' "
-            "for more information.");
+            "for more information.\n");
   } else {
     int file_count = 0;
     for (int i = (optind+1); i < argc; i++) {
@@ -118,6 +118,7 @@ void file_check__flag_s(char **argv, int i, struct options *options,
   } else {
     basic_grep(argv, fp, i, options, file_count);
     fclose(fp);
+    // printf('\n');
   }
 }
 
@@ -126,11 +127,10 @@ int basic_grep(char **argv, FILE *filename, int i, struct options *options,
   char *pattern = argv[optind - 1];
   char *text = NULL;
   int pattern_count = 0;
-  size_t * size_of = 0;
+  size_t  size_of = 0;
   int print_file_count = 0;
   int file_line_counter = 0;
-  ssize_t read = 0;
-  while (getline(&text, &size_of, filename) != -1) {
+  while ((getline(&text, &size_of, filename) )!= -1) {
     regex_t regex;
     int reti;
     regmatch_t matches[1];
@@ -143,10 +143,10 @@ int basic_grep(char **argv, FILE *filename, int i, struct options *options,
       flag_n(&file_line_counter, options, reti);
       if (options->c) {
         pattern_count++;
-      } else if (!options->v) {
+      } else if (!options->v && !options ->l) {
         printf("%s", text);
       }
-    } else if ((reti == REG_NOMATCH) && (options->v)) {
+    } else if ((reti == REG_NOMATCH) && (options->v) && (!options->l)) {
       flag_h(argv, i, options, file_count, &print_file_count);
       flag_n(&file_line_counter, options, reti);
       printf("%s", text);
@@ -172,7 +172,13 @@ int basic_grep(char **argv, FILE *filename, int i, struct options *options,
 
 void flag_h(char **argv, int i, struct options *options, int file_count,
             int *print_file_count) {
-  if (      ((!options->h) && (file_count > 1) && (!options->c))   || (options->c) && (*print_file_count == 0)           ) {  
+  // if (      ((!options->h) && (file_count > 1) && (!options->c))   || (options->c) && (*print_file_count == 0)           )
+  if (options->l && (*print_file_count == 0) ){
+     printf("%s\n", argv[i]);
+     *print_file_count = *print_file_count + 1;
+  }
+  else if ((!options->h) && (file_count > 1) && ((!options->c) || (options->c && (*print_file_count == 0))))
+   {  
     // printf("%s:", argv[i]);
   // } else if ((options->c) && (*print_file_count == 0)){
         printf("%s:", argv[i]);
@@ -181,6 +187,8 @@ void flag_h(char **argv, int i, struct options *options, int file_count,
     // printf("print file count on %d iteration is %d\n", i, *print_file_count);
   }
   // printf("%d\n", file_count);
+
+
 }
 
 int reg_compilation__flag_i(int reti, regex_t *regex, char *pattern, char *text,
