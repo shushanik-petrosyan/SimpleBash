@@ -4,6 +4,8 @@
 #include <stdio.h>    // для скана и принта и гетлайна
 #include <stdlib.h>   // для маллоков
 #include <string.h>   // на будущее
+#define _GNU_SOURCE
+#define  _POSIX_C_SOURCE 200809L
 
 //исправить .
 
@@ -124,9 +126,10 @@ int basic_grep(char **argv, FILE *filename, int i, struct options *options,
   char *pattern = argv[optind - 1];
   char *text = NULL;
   int pattern_count = 0;
-  size_t size_of = 0;
+  size_t * size_of = 0;
   int print_file_count = 0;
   int file_line_counter = 0;
+  ssize_t read = 0;
   while (getline(&text, &size_of, filename) != -1) {
     regex_t regex;
     int reti;
@@ -156,7 +159,10 @@ int basic_grep(char **argv, FILE *filename, int i, struct options *options,
     // }
     regfree(&regex);
   }
-  if (options->c) {
+  if (options->c && pattern_count!= 0) {
+    printf("%d\n", pattern_count);
+  } else if (options->c && pattern_count == 0){
+    printf("%s:", argv[i]);
     printf("%d\n", pattern_count);
   }
   print_file_count=0;
@@ -170,9 +176,9 @@ void flag_h(char **argv, int i, struct options *options, int file_count,
     // printf("%s:", argv[i]);
   // } else if ((options->c) && (*print_file_count == 0)){
         printf("%s:", argv[i]);
-    printf("print file count on %d iteration is %d\n", i, *print_file_count);
+    // printf("print file count on %d iteration is %d\n", i, *print_file_count);
     *print_file_count = *print_file_count + 1;
-    printf("print file count on %d iteration is %d\n", i, *print_file_count);
+    // printf("print file count on %d iteration is %d\n", i, *print_file_count);
   }
   // printf("%d\n", file_count);
 }
