@@ -49,6 +49,42 @@ int main(int argc, char *argv[]) {
   free(options.patterns); // освобождаем память после использования
 }
 
+// /./s21_grep -e for -e ^int s21_grep.c -n
+
+
+// int main(){
+//   int argc = 7;
+//   char ** argv = malloc(argc * sizeof(char*));
+//   for(int i = 0; i < argc;i++){
+//     *(argv+i) = malloc(10*sizeof(char));
+//   }
+//   argv[0] = "./a.out";
+//   argv[1] = "-e";
+//   argv[2] = "for";
+//   argv[3] = "-e";
+//   argv[4] = "^int";
+//   argv[5] = "s21_grep.c";
+//   argv[6] = "-n";
+
+//   options options = {0};
+//   options.patterns =
+//       malloc(argc * sizeof(char *)); // выделяем память для массива паттернов
+//   options.pattern_count = 0;
+//   parser(argc, argv, &options);
+//   if (!options.e){options.pattern_count = 1;}
+//   arg_number(argc, argv, &options);
+//   free(options.patterns); // освобождаем память после использования
+
+//   for(int i =0; i < argc;i++){
+//     free(*(argv+i));
+//   }
+//   free(argv);
+
+//   return 0;
+//   }
+
+
+
 bool parser(int argc, char **argv, options *options) {
   bool check = true;
   int opt;
