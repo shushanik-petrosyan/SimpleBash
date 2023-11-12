@@ -44,7 +44,7 @@ int main(int argc, char *argv[]) {
       malloc(argc * sizeof(char *)); // выделяем память для массива паттернов
   options.pattern_count = 0;
   parser(argc, argv, &options);
-  if (!options.e){options.pattern_count = 1;}
+  if (!options.e && !options.f){options.pattern_count = 1;}
   arg_number(argc, argv, &options);
   free(options.patterns); // освобождаем память после использования
 }
@@ -96,11 +96,6 @@ bool parser(int argc, char **argv, options *options) {
       options->e += 1;
       options->patterns[options->pattern_count] = optarg;
       options->pattern_count++;
-      // printf("\noptarg 1 -- %s\n", optarg);
-      // char *pattern1 = NULL;
-      // size_t size = 0;
-      // getline(&pattern1, &size, &optarg);
-      // printf("%s", pattern1);
       break;
     case 'i':
       options->i = 1;
@@ -143,13 +138,13 @@ void arg_number(int argc, char **argv, struct options *options) {
   } else {
     int file_count = 0;
     // printf("optarg %s\n", optarg);
-    // printf("optind %d\n", optind);
-    // printf("argc %d\n", argc);
+    printf("optind %d\n", optind);
+    printf("argc %d\n", argc);
     for (int i = (optind + 1); i < argc; i++) {
       file_count++;
-      // printf("file %d\n", file_count);
+      printf("file %d\n", file_count);
     }
-    // printf("opting aftec cikl %d\n", optind);
+    printf("opting aftec cikl %d\n", optind);
     if (options->e < 1 && options->f != 1) {
       optind++;
     }
@@ -184,6 +179,7 @@ int basic_grep(char **argv, FILE *filename, int i, struct options *options,
   for (int p = 0; p < options->pattern_count; p++) {
     if (options->e) {
       pattern = options->patterns[p];
+      printf("pattern %s\n", pattern);
     } else {
       pattern = argv[optind - 1];
     }
