@@ -44,13 +44,14 @@ int main(int argc, char *argv[]) {
       malloc(argc * sizeof(char *)); // выделяем память для массива паттернов
   options.pattern_count = 0;
   parser(argc, argv, &options);
-  if (!options.e && !options.f){options.pattern_count = 1;}
+  if (!options.e && !options.f) {
+    options.pattern_count = 1;
+  }
   arg_number(argc, argv, &options);
   free(options.patterns); // освобождаем память после использования
 }
 
 // /./s21_grep -e for -e ^int s21_grep.c -n
-
 
 // int main(){
 //   int argc = 7;
@@ -82,8 +83,6 @@ int main(int argc, char *argv[]) {
 
 //   return 0;
 //   }
-
-
 
 bool parser(int argc, char **argv, options *options) {
   bool check = true;
@@ -185,7 +184,7 @@ int basic_grep(char **argv, FILE *filename, int i, struct options *options,
     }
     while ((getline(&text, &size_of, filename)) != -1) {
       regex_t regex;
-      int reti;
+      int reti = -1;
       regmatch_t matches[1];
       reg_compilation__flag_i(reti, &regex, pattern, text, options);
       reti = regexec(&regex, text, 1, matches,
@@ -238,7 +237,8 @@ void flag_h(char **argv, int i, struct options *options, int file_count,
     printf("%s\n", argv[i]);
     *print_file_count = *print_file_count + 1;
   } else if ((!options->h) && (file_count > 1) &&
-             ((!options->c) || (options->c && (*print_file_count == 0))) && (!options->l)) {
+             ((!options->c) || (options->c && (*print_file_count == 0))) &&
+             (!options->l)) {
     // printf("%s:", argv[i]);
     // } else if ((options->c) && (*print_file_count == 0)){
     printf("%s:", argv[i]);
