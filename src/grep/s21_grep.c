@@ -92,25 +92,26 @@ void arg_number(int argc, char **argv, struct options *options) {
       optind++;
     }
     for (int i = optind; i < argc; i++) {
-      file_check__flag_s(argv, i, options, file_count);
+      file_check(argv, i, options, file_count);
     }
   }
 }
 
 void file_check(char **argv, int i, struct options *options,
                         int file_count) {
-  FILE *fp = fopen(argv[i], "r");
-  if (fp == NULL) {
+  FILE *file = fopen(argv[i], "r");
+  if (file == NULL) {
     if (!options->s) {
       fprintf(stderr, "%s: %s: No such file or directory\n", argv[0], argv[i]);
     }
   } else {
-    basic_grep(argv, fp, i, options, file_count);
+    basic_grep(argv, file, i, options, file_count);
     if (options->v && options->l) {
       printf("%s\n", argv[i]);
     }
+    fclose(file);
   }
-  fclose(fp);
+  
 }
 
 int basic_grep(char **argv, FILE *filename, int i, struct options *options,
@@ -125,7 +126,7 @@ int basic_grep(char **argv, FILE *filename, int i, struct options *options,
     int reti;
     regex_t regex;
     regmatch_t matches[1];
-    reg_compilation__flag_i(&regex, text, options, argv);
+    reg_compilation(&regex, text, options, argv);
     reti = regexec(&regex, text, 1, matches, 0);
     add_line_break(text);
     if (!reti && !options->v) {
@@ -150,6 +151,7 @@ int basic_grep(char **argv, FILE *filename, int i, struct options *options,
   }
   flag_c(argv, i, options, file_count, founded_pattern_count, print_file_count);
   print_file_count = 0;
+  if (text!=NULL)
   free(text);
   return 0;
 }
@@ -184,10 +186,10 @@ int reg_compilation(regex_t *regex, char *text, struct options *options,
               options->i ? (REG_ICASE | REG_EXTENDED) : REG_EXTENDED)) {
     fprintf(stderr, "Error compiling regular expression\n");
     regfree(regex);
-    if (pattern!=NULL)
-    free(pattern);
+    if(text!=NULL)
     free(text);
   }
+  if(pattern!=NULL)
   free(pattern);
   return 0;
 }
@@ -239,10 +241,12 @@ void flag_f(struct options *options, char **argv) {
           options->patterns = realloc(options->patterns, (options->pattern_count + 1) * sizeof(char *));
           if (options->patterns == NULL) {
             fprintf(stderr, "Memory reallocation failed\n");
+            if (text!=NULL)
             free(text);
             fclose(fp);
           }
         }
+        if (text!=NULL)
         free(text);
         fclose(fp);
       }
