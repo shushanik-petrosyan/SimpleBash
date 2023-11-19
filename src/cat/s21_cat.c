@@ -1,9 +1,4 @@
-#include "s21_cat.h"
-
-#include <getopt.h>
-#include <stdbool.h>
-#include <stdio.h>
-#define no_argument 0
+include "s21_cat.h"
 
 int main(int argc, char *argv[]) {
   options options = {0};
@@ -19,34 +14,35 @@ bool parser(int argc, char **argv, struct options *options) {
   opt = getopt_long(argc, argv, short_options, long_options, NULL);
   while (flag && opt != -1) {
     switch (opt) {
-    case 'b':
-      options->b = true;
-      break;
-    case 'n':
-      options->n = true;
-      break;
-    case 'e':
-      options->e = true;
-      options->v = true;
-      break;
-    case 's':
-      options->s = true;
-      break;
-    case 't':
-      options->t = true;
-      options->v = true;
-      break;
-    case 'T':
-      options->t = true;
-      break;
-    case 'E':
-      options->e = true;
-      break;
-    case '?':
-    default:
-      flag = false;
-      printf("%s: illegal option %c\n usage: %s [-benstuv] [file ...]\n",
-             argv[0], optopt, argv[0]);
+      case 'b':
+        options->b = true;
+        break;
+      case 'n':
+        options->n = true;
+        break;
+      case 'e':
+        options->e = true;
+        options->v = true;
+        break;
+      case 's':
+        options->s = true;
+        break;
+      case 't':
+        options->t = true;
+        options->v = true;
+        break;
+      case 'T':
+        options->t = true;
+        break;
+      case 'E':
+        options->e = true;
+        break;
+      case '?':
+      default:
+        flag = false;
+        fprintf(stderr,
+                "%s: illegal option %c\n usage: %s [-benstuv] [file ...]\n",
+                argv[0], optopt, argv[0]);
     }
     opt = getopt_long(argc, argv, short_options, long_options, NULL);
   }
@@ -75,11 +71,11 @@ void arg_number(int argc, char **argv, struct options *options) {
   }
 }
 
-void file_check(char **str, int i, struct options *options, int *counter,
+void file_check(char **str, int file, struct options *options, int *counter,
                 char *previous_symbol, char *current_symbol) {
-  FILE *fp = fopen(str[i], "r");
+  FILE *fp = fopen(str[file], "r");
   if (fp == NULL) {
-    fprintf(stdout, "%s: %s: No such file or directory\n", str[0], str[i]);
+    fprintf(stdout, "%s: %s: No such file or directory\n", str[0], str[file]);
   } else {
     print_file(fp, options, counter, previous_symbol, current_symbol);
     fclose(fp);
@@ -94,8 +90,7 @@ void print_file(FILE *filename, struct options *options, int *counter,
     if (flag_t(options, current_symbol)) {
       continue;
     }
-    if (flag_v(options, current_symbol) == true)
-      putc(*current_symbol, stdout);
+    if (flag_v(options, current_symbol) == true) putc(*current_symbol, stdout);
 
     *previous_symbol = *current_symbol;
   }
