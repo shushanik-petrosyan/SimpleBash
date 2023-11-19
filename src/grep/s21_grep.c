@@ -2,12 +2,7 @@
 
 int main(int argc, char *argv[]) {
   options options = {0};
-
-
-  options.patterns = malloc(argc * sizeof(char *));
-  options.file_patterns = malloc(argc * sizeof(char *));
-
-
+  memory_create(&options);
   parser(argc, argv, &options);
   flag_f(&options, argv);
   if (!options.e && !options.f) {
@@ -15,6 +10,18 @@ int main(int argc, char *argv[]) {
   }
   arg_number(argc, argv, &options);
   memory_free(&options);
+}
+void memory_create(struct options *options) {
+  if ((options->patterns = calloc(MEMORY_SIZE, sizeof(char *))) != NULL) {
+    options->pattern_capacity = MEMORY_SIZE;
+  } else {
+    exit(EXIT_FAILURE);
+  }
+  if ((options->file_patterns = calloc(MEMORY_SIZE, sizeof(char *))) != NULL) {
+    options->file_pattern_capacity = MEMORY_SIZE;
+  } else {
+    exit(EXIT_FAILURE);
+  }
 }
 
 bool parser(int argc, char **argv, struct options *options) {
@@ -26,8 +33,7 @@ bool parser(int argc, char **argv, struct options *options) {
     switch (opt) {
       case 'e':
         options->e += 1;
-        options->patterns[options->pattern_count] = optarg;
-        options->pattern_count++;
+        add_pattern(optarg, options);
         break;
       case 'i':
         options->i = 1;
@@ -46,8 +52,7 @@ bool parser(int argc, char **argv, struct options *options) {
         break;
       case 'f':
         options->f = 1;
-        options->file_patterns[options->file_pattern_count] = optarg;
-        options->file_pattern_count++;
+        add_pattern_file(optarg, options);
         break;
       case 'h':
         options->h = 1;
@@ -64,6 +69,36 @@ bool parser(int argc, char **argv, struct options *options) {
     }
   }
   return check;
+}
+
+void add_pattern(char *pattern, options *options) {
+  if (options->pattern_count >= options->pattern_capacity) {
+    options->pattern_capacity *= 2;
+    if ((options->patterns = realloc(
+             options->patterns, options->pattern_capacity * sizeof(char *))) ==
+        NULL) {
+      printf("error realloc\n");
+      exit(EXIT_FAILURE);
+    }
+  }
+  options->patterns[options->pattern_count] =
+      calloc(strlen(pattern) + 1, sizeof(char));
+  strcpy(options->patterns[options->pattern_count++], pattern);
+}
+
+void add_pattern_file(char *pattern, options *options) {
+  if (options->file_pattern_count >= options->file_pattern_capacity) {
+    options->file_pattern_capacity *= 2;
+    if ((options->file_patterns =
+             realloc(options->file_patterns, options->file_pattern_capacity *
+                                                 sizeof(char *))) != NULL) {
+      printf("error realloc file\n");
+      exit(EXIT_FAILURE);
+    }
+  }
+  options->file_patterns[options->file_pattern_count] =
+      calloc(strlen(pattern) + 1, sizeof(char));
+  strcpy(options->file_patterns[options->file_pattern_count++], pattern);
 }
 
 void print_error() {
@@ -97,8 +132,7 @@ void arg_number(int argc, char **argv, struct options *options) {
   }
 }
 
-void file_check(char **argv, int i, struct options *options,
-                        int file_count) {
+void file_check(char **argv, int i, struct options *options, int file_count) {
   FILE *file = fopen(argv[i], "r");
   if (file == NULL) {
     if (!options->s) {
@@ -111,7 +145,6 @@ void file_check(char **argv, int i, struct options *options,
     }
     fclose(file);
   }
-  
 }
 
 int basic_grep(char **argv, FILE *filename, int i, struct options *options,
@@ -124,8 +157,8 @@ int basic_grep(char **argv, FILE *filename, int i, struct options *options,
   ssize_t get = 0;
   while (((get = getline(&text, &size_of, filename))) != -1) {
     int reti;
-    regex_t regex;
     regmatch_t matches[1];
+    regex_t regex;
     reg_compilation(&regex, text, options, argv);
     reti = regexec(&regex, text, 1, matches, 0);
     add_line_break(text);
@@ -151,46 +184,45 @@ int basic_grep(char **argv, FILE *filename, int i, struct options *options,
   }
   flag_c(argv, i, options, file_count, founded_pattern_count, print_file_count);
   print_file_count = 0;
-  if (text!=NULL)
-  free(text);
+  if (text != NULL) free(text);
   return 0;
 }
 
 int reg_compilation(regex_t *regex, char *text, struct options *options,
-                            char **argv) {
-  char *pattern;
+                    char **argv) {
+  char *pattern = NULL;
   if (options->e || options->f) {
     size_t total_length = 0;
     for (int p = 0; p < options->pattern_count; p++) {
       total_length += strlen(options->patterns[p]);
     }
-
-    pattern = malloc((total_length + options->pattern_count - 1) * sizeof(char));
+    pattern =
+        (char *)calloc(total_length + options->pattern_count + 1, sizeof(char));
     if (pattern == NULL) {
-    fprintf(stderr, "Memory allocation failed\n");
-    }
-    pattern[0] = '\0';
-        for (int p = 0; p < options->pattern_count; p++) {
+      fprintf(stderr, "Memory allocation failed\n");
+    } else {
+      pattern[0] = '\0';
+      for (int p = 0; p < options->pattern_count; p++) {
         strcat(pattern, options->patterns[p]);
         if (p < options->pattern_count - 1) {
-            strcat(pattern, "|");
+          strcat(pattern, "|");
         }
+      }
     }
-} else {
-    pattern = strdup(argv[optind - 1]); 
+  } else {
+    pattern = strdup(argv[optind - 1]);
     if (pattern == NULL) {
-    fprintf(stderr, "Memory allocation failed\n");} // Use strdup for single pattern
-}
-  
+      fprintf(stderr, "Memory allocation failed\n");
+    }
+  }
+
   if (regcomp(regex, pattern,
               options->i ? (REG_ICASE | REG_EXTENDED) : REG_EXTENDED)) {
     fprintf(stderr, "Error compiling regular expression\n");
     regfree(regex);
-    if(text!=NULL)
-    free(text);
+    if (text != NULL) free(text);
   }
-  if(pattern!=NULL)
-  free(pattern);
+  if (pattern != NULL) free(pattern);
   return 0;
 }
 
@@ -238,21 +270,19 @@ void flag_f(struct options *options, char **argv) {
             options->patterns[options->pattern_count] = strdup(text);
           }
           options->pattern_count++;
-          options->patterns = realloc(options->patterns, (options->pattern_count + 1) * sizeof(char *));
+          options->patterns = realloc(
+              options->patterns, (options->pattern_count + 1) * sizeof(char *));
           if (options->patterns == NULL) {
             fprintf(stderr, "Memory reallocation failed\n");
-            if (text!=NULL)
-            free(text);
+            if (text != NULL) free(text);
             fclose(fp);
           }
         }
-        if (text!=NULL)
-        free(text);
+        if (text != NULL) free(text);
         fclose(fp);
       }
     }
   }
-  
 }
 
 void flag_c(char **argv, int i, struct options *options, int file_count,
@@ -293,17 +323,22 @@ void add_line_break(char *text) {
   }
 }
 
-void memory_free (struct options *options){
+void memory_free(struct options *options) {
   for (int i = 0; i < options->pattern_count; i++) {
-    if (options->patterns[i]!=NULL)
-    free(options->patterns[i]);
+    if (options->patterns[i] != NULL) {
+      free(options->patterns[i]);
+    }
   }
-  if (options->patterns!=NULL)
-  free(options->patterns);
+  if (options->patterns != NULL) {
+    free(options->patterns);
+  }
+
   for (int i = 0; i < options->file_pattern_count; i++) {
-    if (options->file_patterns[i]!=NULL)
-    free(options->file_patterns[i]);
+    if (options->file_patterns[i] != NULL) {
+      free(options->file_patterns[i]);
+    }
   }
-  if (options->file_patterns!=NULL)
-  free(options->file_patterns);
+  if (options->file_patterns != NULL) {
+    free(options->file_patterns);
+  }
 }
