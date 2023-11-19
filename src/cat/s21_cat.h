@@ -1,17 +1,18 @@
-#include <getopt.h>
-#include <stdbool.h>
-#include <stdio.h>
-
 #ifndef S21_CAT
 #define S21_CAT
 
+#include <getopt.h>
+#include <stdbool.h>
+#include <stdio.h>
+#define no_argument 0
+
 typedef struct options {
-  bool b; // numbers only non-empty lines
-  bool e; // but also display end-of-line characters as $
-  bool n; // number all output lines
-  bool s; // squeeze multiple adjacent blank lines
-  bool t; // but also display tabs as ^I
-  bool v; // show non-ptinting symbols
+  bool b;
+  bool e;
+  bool n;
+  bool s;
+  bool t;
+  bool v;
 } options;
 
 struct option long_options[] = {{"number-nonblank", no_argument, NULL, 'b'},
@@ -22,7 +23,7 @@ struct option long_options[] = {{"number-nonblank", no_argument, NULL, 'b'},
 const char *short_options = "beEnstTv";
 
 bool parser(int argc, char **argv, struct options *options);
-void file_check(char **str, int i, struct options *options, int *counter,
+void file_check(char **str, int file, struct options *options, int *counter,
                 char *previous_symbol, char *current_symbol);
 void no_option_no_file();
 void print_file(FILE *filename, struct options *options, int *counter,
